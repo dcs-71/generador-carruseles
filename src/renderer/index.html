@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Academy Carousel Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-lockup">
+          <div class="mark"><span></span></div>
+          <div>
+            <strong>academy</strong>
+            <small>By Total Therapy</small>
+          </div>
+        </div>
+        <nav class="nav-tabs" aria-label="Secciones">
+          <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+          <button class="nav-tab" data-tab="review">Revision</button>
+          <button class="nav-tab" data-tab="settings">Settings</button>
+        </nav>
+        <div class="sidebar-status">
+          <span>ADC</span>
+          <strong id="adcStatus">verificando</strong>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Mesa editorial medica</p>
+            <h1>Generador de carruseles Academy</h1>
+          </div>
+          <div class="top-actions">
+            <button class="icon-button" id="openOutputs" title="Abrir outputs">⌕</button>
+            <button class="primary-button" id="importCsv">Importar CSV</button>
+          </div>
+        </header>
+
+        <section class="tab-panel active" id="dashboardPanel">
+          <div class="metrics-grid">
+            <div class="metric"><span>Pendientes</span><strong id="metricPending">0</strong></div>
+            <div class="metric"><span>Generadas</span><strong id="metricGenerated">0</strong></div>
+            <div class="metric"><span>Revision</span><strong id="metricReview">0</strong></div>
+            <div class="metric"><span>Aprobadas</span><strong id="metricApproved">0</strong></div>
+          </div>
+
+          <section class="work-band">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Ideas importadas</p>
+                <h2>Cola de produccion</h2>
+              </div>
+              <div class="filters" id="filters">
+                <button class="filter active" data-filter="todas">Todas</button>
+                <button class="filter" data-filter="pendiente">Pendientes</button>
+                <button class="filter" data-filter="generada">Generadas</button>
+                <button class="filter" data-filter="en_revision">Revision</button>
+                <button class="filter" data-filter="aprobada">Aprobadas</button>
+              </div>
+            </div>
+
+            <div class="toolbar">
+              <label class="checkbox-line"><input type="checkbox" id="selectAll" /> Seleccionar visibles</label>
+              <label class="range-field">Rango <input id="rangeInput" placeholder="1-7" /></label>
+              <button class="ghost-button" id="applyRange">Aplicar rango</button>
+              <span class="spacer"></span>
+              <select id="slideCount">
+                <option value="4">4 slides</option>
+                <option value="5">5 slides</option>
+              </select>
+              <button class="danger-button" id="cancelGeneration" disabled>Cancelar generación</button>
+              <button class="primary-button" id="generateSelected">Generar seleccionadas</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>ID</th>
+                    <th>Titulo</th>
+                    <th>Concepto clave</th>
+                    <th>Publico</th>
+                    <th>Ref.</th>
+                    <th>Estado</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="ideasTable"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="queue-band">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow">Progreso</p>
+                <h2>Generacion activa</h2>
+              </div>
+            </div>
+            <div id="queueList" class="queue-list"></div>
+          </section>
+        </section>
+
+        <section class="tab-panel" id="reviewPanel">
+          <div class="review-grid">
+            <section class="viewer">
+              <div class="viewer-frame">
+                <img id="slidePreview" alt="Preview del slide" />
+                <div class="empty-preview" id="emptyPreview">Selecciona un carrusel generado</div>
+              </div>
+              <div class="viewer-controls">
+                <button class="icon-button" id="prevSlide" title="Slide anterior">‹</button>
+                <strong id="slideCounter">0/0</strong>
+                <button class="icon-button" id="nextSlide" title="Slide siguiente">›</button>
+              </div>
+              <div class="thumbs" id="thumbs"></div>
+            </section>
+            <aside class="review-panel">
+              <p class="eyebrow">Carrusel seleccionado</p>
+              <h2 id="reviewTitle">Sin seleccion</h2>
+              <p id="reviewMeta" class="muted">Importa y genera una idea para revisar sus slides.</p>
+              <label class="prompt-label">Prompt del slide</label>
+              <textarea id="promptEditor" spellcheck="false"></textarea>
+              <div class="review-actions">
+                <button class="ghost-button" id="regenerateSlide">Regenerar slide</button>
+                <button class="secondary-button" id="regenerateCarousel">Regenerar carrusel</button>
+                <button class="primary-button" id="approveCarousel">Aprobar</button>
+              </div>
+              <button class="ghost-button full" id="exportCarousel">Exportar carrusel</button>
+              <button class="ghost-button full" id="exportApproved">Exportar lote aprobado</button>
+              <button class="danger-button full" id="deleteCarousel">Eliminar carrusel</button>
+            </aside>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="settingsPanel">
+          <section class="settings-grid">
+            <div>
+              <p class="eyebrow">Modelo</p>
+              <h2>Modelo de imagen</h2>
+              <p class="muted">Elige el modelo de Gemini que generara cada slide. Nano Banana Pro prioriza calidad; Nano Banana es mas rapido y economico. Los lineamientos Academy estan integrados en todos los prompts.</p>
+            </div>
+            <form id="settingsForm" class="settings-form">
+              <label>Modo de autenticacion
+                <select id="authMode">
+                  <option value="apiKey">API key</option>
+                  <option value="adc">ADC + Google Cloud Project ID</option>
+                </select>
+              </label>
+              <label>API key
+                <input id="apiKey" type="password" autocomplete="off" placeholder="No se muestra en logs ni metadata" />
+              </label>
+              <label>Google Cloud Project ID
+                <input id="projectId" placeholder="mi-proyecto-gcp" />
+              </label>
+              <label>Modelo de imagen
+                <select id="model">
+                  <option value="nano-banana-pro">Nano Banana Pro — Gemini 3 Pro Image (máxima calidad)</option>
+                  <option value="nano-banana">Nano Banana — Gemini 2.5 Flash Image (más rápido)</option>
+                </select>
+              </label>
+              <label>Calidad
+                <select id="quality">
+                  <option value="standard">standard</option>
+                  <option value="high">high</option>
+                </select>
+              </label>
+              <label class="checkbox-line"><input id="simulateGeneration" type="checkbox" /> Generacion simulada</label>
+              <button class="primary-button" type="submit">Guardar settings</button>
+            </form>
+          </section>
+        </section>
+      </main>
+    </div>
+    <div class="toast" id="toast"></div>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

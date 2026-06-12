@@ -1,0 +1,13 @@
+{
+  "name": "academy-carousel-generator",
+  "version": "0.1.0",
+  "description": "Gestor Electron para carruseles educativos de Academy by Total Therapy.",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^31.7.0"
+  },
+  "devDependencies": {}
+}
