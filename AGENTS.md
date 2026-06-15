@@ -12,7 +12,8 @@ CSV de ideas + lineamientos Academy embebidos -> cola de generacion -> carrusele
 
 ## Reglas de Trabajo
 
-- Trabajar dentro de `/Users/paul/Diego/Proyectos/Image-gen`.
+- Trabajar dentro de `/Users/paul/Diego/Total Therapy/Generador de carruseles`.
+- El worktree de migración a Tauri se encuentra en `/Users/paul/Diego/Total Therapy/Generador de carruseles - tauri`.
 - No borrar ni reemplazar cambios existentes del usuario.
 - Mantener `outputs/` como carpeta de salida por defecto.
 - No commitear secretos, credenciales ni archivos generados.
@@ -23,13 +24,20 @@ CSV de ideas + lineamientos Academy embebidos -> cola de generacion -> carrusele
 
 ## Stack Actual
 
+- Tauri (versión en desarrollo en worktree paralelo).
+- Rust para el proceso principal y comandos del sistema.
+- Renderer HTML/CSS/JS sin framework.
+- `src-tauri/src/lib.rs` / `main.rs` para lógica del backend.
+- `src/` para la interfaz web.
+- `outputs/` para resultados.
+
+### Stack anterior (rama `electron-legacy`)
+
 - Electron.
 - JavaScript CommonJS.
-- Renderer HTML/CSS/JS sin framework.
 - `src/main/main.js` para proceso principal e IPC.
 - `src/main/preload.js` para API segura al renderer.
 - `src/renderer/` para interfaz.
-- `outputs/` para resultados.
 
 ## Credenciales y Google Cloud
 
