@@ -11,6 +11,7 @@ function readJson(file) {
 
 function modelForVertex(model) {
   if (model === 'nano-banana-pro') return 'gemini-3-pro-image-preview';
+  if (model === 'nano-banana-2') return 'gemini-3.1-flash-image';
   if (model === 'nano-banana') return 'gemini-2.5-flash-image';
   return model;
 }

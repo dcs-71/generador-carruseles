@@ -22,7 +22,7 @@ const REQUIRED_COLUMNS = [
   'estado'
 ];
 const VALID_STATES = ['pendiente', 'generada', 'en_revision', 'aprobada', 'error'];
-const IMAGE_MODELS = ['nano-banana-pro', 'nano-banana'];
+const IMAGE_MODELS = ['nano-banana-pro', 'nano-banana-2', 'nano-banana'];
 const ACADEMY_BRAND_PROMPT_SUMMARY = [
   'Lineamientos fijos de marca Academy by Total Therapy:',
   'Academy es la unidad educativa de Total Therapy para formaciones presenciales y online en fisioterapia invasiva, especialmente puncion seca. El tono debe ser medico, academico, preciso, confiable y editorial.',
@@ -99,6 +99,9 @@ function publicSettings() {
 function modelForProvider(model, provider) {
   if (model === 'nano-banana-pro') {
     return provider === 'vertex' ? 'gemini-3-pro-image-preview' : 'gemini-3-pro-image';
+  }
+  if (model === 'nano-banana-2') {
+    return provider === 'vertex' ? 'gemini-3.1-flash-image' : 'gemini-3.1-flash-image';
   }
   if (model === 'nano-banana') return 'gemini-2.5-flash-image';
   return model;
