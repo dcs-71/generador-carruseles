@@ -2,6 +2,7 @@ const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
+const { PDFDocument } = require('pdf-lib');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const OUTPUTS_DIR = path.join(ROOT, 'outputs');
@@ -684,6 +685,22 @@ ipcMain.handle('carousel:delete', async (_event, payload) => {
   return { deletedCarouselId: payload.carouselId, ideas: state.ideas, carousels: state.carousels };
 });
 
+async function buildCarouselPdf(carousel, destPath) {
+  const pdf = await PDFDocument.create();
+  const PAGE = 600;
+  for (const slide of carousel.slides) {
+    const pngBytes = fs.readFileSync(slide.path);
+    const png = await pdf.embedPng(pngBytes);
+    const page = pdf.addPage([PAGE, PAGE]);
+    const scale = Math.min(PAGE / png.width, PAGE / png.height);
+    const w = png.width * scale;
+    const h = png.height * scale;
+    page.drawImage(png, { x: (PAGE - w) / 2, y: (PAGE - h) / 2, width: w, height: h });
+  }
+  fs.writeFileSync(destPath, await pdf.save());
+  return destPath;
+}
+
 ipcMain.handle('export:approvedBatch', () => {
   const approved = state.carousels.filter((item) => item.status === 'aprobada');
   const dest = path.join(OUTPUTS_DIR, 'exports', `lote_aprobado_${new Date().toISOString().slice(0, 10)}`);
@@ -703,6 +720,27 @@ ipcMain.handle('export:carousel', (_event, payload) => {
   fs.mkdirSync(dest, { recursive: true });
   carousel.slides.forEach((slide) => fs.copyFileSync(slide.path, path.join(dest, slide.filename)));
   return { dest };
+});
+
+ipcMain.handle('export:carouselPdf', async (_event, payload) => {
+  const carousel = state.carousels.find((item) => item.carouselId === payload.carouselId);
+  if (!carousel) throw new Error('No se encontro el carrusel.');
+  const destDir = path.join(OUTPUTS_DIR, 'exports', 'pdf');
+  fs.mkdirSync(destDir, { recursive: true });
+  const destPath = path.join(destDir, `${carousel.carouselId}.pdf`);
+  await buildCarouselPdf(carousel, destPath);
+  return { dest: destPath };
+});
+
+ipcMain.handle('export:approvedBatchPdf', async () => {
+  const approved = state.carousels.filter((item) => item.status === 'aprobada');
+  if (!approved.length) throw new Error('No hay carruseles aprobados para exportar.');
+  const destDir = path.join(OUTPUTS_DIR, 'exports', `lote_aprobado_pdf_${new Date().toISOString().slice(0, 10)}`);
+  fs.mkdirSync(destDir, { recursive: true });
+  for (const carousel of approved) {
+    await buildCarouselPdf(carousel, path.join(destDir, `${carousel.carouselId}.pdf`));
+  }
+  return { count: approved.length, dest: destDir };
 });
 
 ipcMain.handle('shell:openPath', (_event, targetPath) => shell.openPath(targetPath || OUTPUTS_DIR));

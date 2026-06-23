@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld('academyAPI', {
   updateCarouselStatus: (payload) => invoke('carousel:updateStatus', payload),
   exportApprovedBatch: () => invoke('export:approvedBatch'),
   exportCarousel: (payload) => invoke('export:carousel', payload),
+  exportCarouselPdf: (payload) => invoke('export:carouselPdf', payload),
+  exportApprovedBatchPdf: () => invoke('export:approvedBatchPdf'),
   openPath: (targetPath) => invoke('shell:openPath', targetPath),
   onGenerationProgress: (callback) => {
     const listener = (_event, payload) => callback(payload);

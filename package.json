@@ -7,7 +7,7 @@
     "start": "electron ."
   },
   "dependencies": {
-    "electron": "^31.7.0"
-  },
-  "devDependencies": {}
+    "electron": "^31.7.0",
+    "pdf-lib": "^1.17.1"
+  }
 }

@@ -317,9 +317,19 @@ function bindEvents() {
     const result = await api.exportCarousel({ carouselId: carousel.carouselId });
     toast(`Exportado en ${result.dest}`);
   });
+  $('#exportCarouselPdf').addEventListener('click', async () => {
+    const carousel = selectedCarousel();
+    if (!carousel) return;
+    const result = await api.exportCarouselPdf({ carouselId: carousel.carouselId });
+    toast(`PDF exportado en ${result.dest}`);
+  });
   $('#exportApproved').addEventListener('click', async () => {
     const result = await api.exportApprovedBatch();
     toast(`Exportados ${result.count} carruseles aprobados.`);
+  });
+  $('#exportApprovedPdf').addEventListener('click', async () => {
+    const result = await api.exportApprovedBatchPdf();
+    toast(`Exportados ${result.count} carruseles aprobados en PDF.`);
   });
   $('#deleteCarousel').addEventListener('click', async () => {
     const carousel = selectedCarousel();
