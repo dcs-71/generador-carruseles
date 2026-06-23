@@ -31,8 +31,8 @@ const ACADEMY_BRAND_PROMPT_SUMMARY = [
   'Aplicar regla visual 60/30/10: dominar con navy/indigo, apoyar con fondos claros o secundarios y reservar naranja para CTAs, puntos gatillo, marcas de enfasis o pequenos acentos.',
   'Iconografia: lineal, geometrica, medica/educativa, trazo uniforme, sin rellenos decorativos ni sombras pesadas. Imagenes: fisioterapia, aula clinica, anatomia profesional, agujas o referencias de puncion seca solo cuando aporte claridad.',
   'Evitar formas organicas tipo blobs, estetica generica de IA, exceso de texto, anatomia incorrecta, imagenes confusas, patrones decorativos sobre fotos y cualquier cambio no autorizado de logo o isotipo.',
-  'Formato de cada slide: cuadrado 1:1, pensado para carrusel educativo en redes sociales.',
-  'Usar el logo o isotipo solo desde las imagenes de referencia adjuntas. No inventar, redibujar ni alucinar versiones alternativas del logo.'
+  'Formato de cada slide: pensado para carrusel educativo en redes sociales.',
+  'Usar el logo o isotipo solo desde las imagenes de referencia adjuntas.'
 ].join('\n');
 
 let mainWindow;
@@ -385,12 +385,16 @@ function academyPrompt(idea, slideIndex, slideCount) {
     : 'No incluir referencia, capitulo, pagina, bibliografia, fuente ni texto legal en esta imagen. La referencia queda solo para metadata y para el ultimo slide.';
   const coverRule = isFirstSlide
     ? 'Regla especial de portada: debe ser visualmente llamativa, con maximo 8 palabras principales visibles, sin parrafos explicativos, sin subtitulos largos y sin referencia bibliografica.'
-    : 'Evitar sobrecargar el slide: usar textos cortos, jerarquia clara y solo los rótulos necesarios para explicar la idea.';
+    : isBody
+      ? 'Evitar sobrecargar el slide: usar textos cortos, jerarquia clara y solo los rótulos necesarios para explicar la idea.'
+      : '';
   const varietyRule = isBody
     ? 'Este es un slide de desarrollo: su grafico debe ser claramente DISTINTO al de la portada y al de los otros slides de desarrollo. No repitas la misma ilustracion, el mismo tipo de diagrama ni la misma composicion entre slides; usa exactamente la representacion descrita en la sugerencia visual de este slide (p. ej. uno anatomico, otro una tabla comparativa, otro un diagrama de mecanismo o de proceso) para aportar informacion nueva.'
-    : 'La portada y el cierre pueden compartir un mismo motivo visual "hero" para dar coherencia de apertura y cierre al carrusel.';
+    : isLastSlide
+      ? 'La portada y el cierre pueden compartir un mismo motivo visual "hero" para dar coherencia de apertura y cierre al carrusel.'
+      : '';
   return [
-    `Crear slide ${slideIndex}/${slideCount} cuadrado 1:1 para carrusel educativo de Academy by Total Therapy.`,
+    `Crear slide ${slideIndex}/${slideCount} para carrusel educativo de Academy by Total Therapy.`,
     `Tema general del carrusel: ${idea.titulo}.`,
     `Enfoque informativo de ESTE slide: ${concepto}.`,
     `Publico objetivo: ${idea.publico_objetivo}.`,
@@ -399,9 +403,8 @@ function academyPrompt(idea, slideIndex, slideCount) {
     coverRule,
     varietyRule,
     referenceRule,
-    'Si usas marca visible, colocar el logo oficial Academy pequeno en una esquina respetando area de proteccion. No crear logotipos alternativos ni escribir versiones inventadas de la marca.',
-    ACADEMY_BRAND_PROMPT_SUMMARY,
-    'No pedir al usuario manual adicional: estos lineamientos Academy son obligatorios y suficientes para todas las generaciones.'
+    'Si usas marca visible, colocar el logo oficial Academy pequeno en una esquina respetando area de proteccion.',
+    ACADEMY_BRAND_PROMPT_SUMMARY
   ].filter(Boolean).join('\n');
 }
 
