@@ -11,6 +11,7 @@ const STATE_FILE = path.join(STATE_DIR, 'state.json');
 const SETTINGS_FILE = path.join(STATE_DIR, 'settings.json');
 const ACADEMY_LOGO_FILE = path.join(ROOT, 'src', 'assets', 'academy', 'logo_color.png');
 const ACADEMY_ISOTIPO_FILE = path.join(ROOT, 'src', 'assets', 'academy', 'isotipo_color.png');
+const AUTH_MODES = ['apiKey', 'adc', 'openrouter'];
 
 const REQUIRED_COLUMNS = [
   'id',
@@ -46,6 +47,7 @@ let generationJob = null;
 let settings = {
   authMode: 'apiKey',
   apiKey: '',
+  openrouterApiKey: '',
   googleCloudProjectId: '',
   model: 'nano-banana-pro',
   outputDir: OUTPUTS_DIR,
@@ -93,6 +95,7 @@ function publicSettings() {
   return {
     ...settings,
     apiKey: settings.apiKey ? '********' : '',
+    openrouterApiKey: settings.openrouterApiKey ? '********' : '',
     adcDetected: fs.existsSync('/Users/paul/.config/gcloud/application_default_credentials.json')
   };
 }
@@ -106,6 +109,41 @@ function modelForProvider(model, provider) {
   }
   if (model === 'nano-banana') return 'gemini-2.5-flash-image';
   return model;
+}
+
+function modelForOpenRouter(model) {
+  if (model === 'nano-banana-pro') return 'google/gemini-3-pro-image';
+  if (model === 'nano-banana-2') return 'google/gemini-3.1-flash-image';
+  if (model === 'nano-banana') return 'google/gemini-2.5-flash-image';
+  return model;
+}
+
+function brandReferenceAssets() {
+  return [
+    { label: 'logo oficial Academy', file: ACADEMY_LOGO_FILE },
+    { label: 'isotipo oficial Academy', file: ACADEMY_ISOTIPO_FILE }
+  ].filter((asset) => fs.existsSync(asset.file));
+}
+
+function brandReferenceParts() {
+  return brandReferenceAssets().flatMap((asset) => [
+    { text: `Referencia visual adjunta: ${asset.label}. Usar solamente esta referencia para cualquier marca Academy visible.` },
+    {
+      inlineData: {
+        mimeType: 'image/png',
+        data: fs.readFileSync(asset.file).toString('base64')
+      }
+    }
+  ]);
+}
+
+function brandReferenceDataUrls() {
+  return brandReferenceAssets().map((asset) => ({
+    type: 'image_url',
+    image_url: {
+      url: `data:image/png;base64,${fs.readFileSync(asset.file).toString('base64')}`
+    }
+  }));
 }
 
 async function getAccessTokenFromAdc() {
@@ -205,7 +243,11 @@ async function withGenerationRetries(task) {
 
 async function writeGeneratedImage(prompt, imagePath) {
   if (isGenerationCancelled()) throw cancelError();
-  const provider = settings.authMode === 'adc' ? 'vertex' : 'gemini';
+  const authMode = settings.authMode || 'apiKey';
+  if (authMode === 'openrouter') {
+    return writeGeneratedImageOpenRouter(prompt, imagePath);
+  }
+  const provider = authMode === 'adc' ? 'vertex' : 'gemini';
   const model = modelForProvider(settings.model || 'nano-banana-pro', provider);
   const imageSize = settings.quality === 'high' ? '2K' : '1K';
   const body = {
@@ -265,6 +307,54 @@ async function writeGeneratedImage(prompt, imagePath) {
     model,
     mimeType: inlineData.mimeType || inlineData.mime_type || 'image/png',
     imageSize
+  };
+}
+
+async function writeGeneratedImageOpenRouter(prompt, imagePath) {
+  if (!settings.openrouterApiKey) {
+    throw new Error('Falta API key de OpenRouter para generar imagenes.');
+  }
+  const model = modelForOpenRouter(settings.model || 'nano-banana-pro');
+  const resolution = settings.quality === 'high' ? '2K' : '1K';
+  const body = {
+    model,
+    prompt,
+    aspect_ratio: '1:1',
+    output_format: 'png'
+  };
+  const supportsResolution = model !== 'google/gemini-2.5-flash-image';
+  if (supportsResolution) body.resolution = resolution;
+  const refs = brandReferenceDataUrls();
+  if (refs.length) body.input_references = refs;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${settings.openrouterApiKey}`
+  };
+  const controller = new AbortController();
+  if (generationJob) generationJob.controller = controller;
+  const response = await fetch('https://openrouter.ai/api/v1/images', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    signal: controller.signal
+  });
+  if (generationJob?.controller === controller) generationJob.controller = null;
+  const responseJson = await response.json();
+  if (!response.ok) {
+    const message = responseJson?.error?.message || responseJson?.message || `HTTP ${response.status}`;
+    throw new Error(`La generacion con OpenRouter fallo: ${message}`);
+  }
+  const image = responseJson?.data?.[0];
+  if (!image?.b64_json) {
+    throw new Error('OpenRouter respondio sin imagen.');
+  }
+  fs.writeFileSync(imagePath, Buffer.from(image.b64_json, 'base64'));
+  return {
+    provider: 'openrouter',
+    model,
+    mimeType: 'image/png',
+    imageSize: resolution
   };
 }
 
@@ -599,6 +689,8 @@ ipcMain.handle('ideas:importCsv', async () => {
 ipcMain.handle('settings:save', (_event, incoming) => {
   const next = { ...settings, ...incoming };
   if (incoming.apiKey === '********') next.apiKey = settings.apiKey;
+  if (incoming.openrouterApiKey === '********') next.openrouterApiKey = settings.openrouterApiKey;
+  if (!AUTH_MODES.includes(next.authMode)) next.authMode = 'apiKey';
   next.slideCount = Number(next.slideCount) === 5 ? 5 : 4;
   if (!IMAGE_MODELS.includes(next.model)) next.model = 'nano-banana-pro';
   settings = next;

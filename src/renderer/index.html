@@ -152,12 +152,16 @@
             <form id="settingsForm" class="settings-form">
               <label>Modo de autenticacion
                 <select id="authMode">
-                  <option value="apiKey">API key</option>
+                  <option value="apiKey">API key (Gemini)</option>
                   <option value="adc">ADC + Google Cloud Project ID</option>
+                  <option value="openrouter">OpenRouter API key</option>
                 </select>
               </label>
               <label>API key
                 <input id="apiKey" type="password" autocomplete="off" placeholder="No se muestra en logs ni metadata" />
+              </label>
+              <label>OpenRouter API key
+                <input id="openrouterApiKey" type="password" autocomplete="off" placeholder="sk-or-..." />
               </label>
               <label>Google Cloud Project ID
                 <input id="projectId" placeholder="mi-proyecto-gcp" />

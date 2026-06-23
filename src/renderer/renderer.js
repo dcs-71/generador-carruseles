@@ -161,6 +161,7 @@ function renderSettings() {
   $('#adcStatus').textContent = appState.settings.adcDetected ? 'detectado' : 'no detectado';
   $('#authMode').value = appState.settings.authMode || 'apiKey';
   $('#apiKey').value = appState.settings.apiKey || '';
+  $('#openrouterApiKey').value = appState.settings.openrouterApiKey || '';
   $('#projectId').value = appState.settings.googleCloudProjectId || '';
   const modelSelect = $('#model');
   const storedModel = appState.settings.model || 'nano-banana-pro';
@@ -349,6 +350,7 @@ function bindEvents() {
     appState.settings = await api.saveSettings({
       authMode: $('#authMode').value,
       apiKey: $('#apiKey').value,
+      openrouterApiKey: $('#openrouterApiKey').value,
       googleCloudProjectId: $('#projectId').value,
       model: $('#model').value,
       quality: $('#quality').value,
